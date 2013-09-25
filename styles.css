@@ -53,6 +53,8 @@ ul#board_list li.active {
   position: relative;
 }
  
+.post-it-template { display: none; }
+
 .post-it {
   position: absolute !important;
   width: 160px;
