@@ -1,130 +1,94 @@
-// Clicking on the New Board button creates a new board and adds its name to the list on the left.
-// When there are multiple boards, users can switch between them by clicking on the name of the board in the list.
-// Post-its retain their content and position even when the user switches between boards.
-// Clicking on the Load Samples button generates two new boards using the objects in the SampleBoards variable. It also disappears once clicked, so that you can only load samples once.
+function BoardSelector(cssSelector) {
+  this.$elem = $(cssSelector);
+  this.$boardList = this.$elem.find('#board_list');
+  this.$boardTemplate = $('.post_board').clone();
+  $('.post_board').remove(); // remove the original board element
+  this.boards = [];
+  this.numBoards = 0;
 
-var Board = function( selector ) {
-  // Your board related code goes here
-  
-  // Use $elem to access the DOM element for this board
-  var $elem = $( selector );
-  var array_of_postits = [];
-
+  var self = this;
   function initialize() {
-    $elem.on("click", function(e){
-      e.preventDefault();
-      new PostIt(e.pageX, e.pageY, $elem);
-      
-    });
-}   
-    initialize();
-  };
+    // bind events for our buttons
+    self.$elem.find('button#new_board').on('click', function(e) { self.createBoard(e) });
+    self.$elem.find('button#load_samples').on('click', function(e) { self.loadSamples(e) });
+    self.$boardList.on('click', 'li', function(e) { self.selectBoard(e) } );
 
-var PostIt = function(x, y, board) {
- 
- 
-  function initialize() {
-    
-    var header = $("<div class = 'header'>").text('Post Me!');
-    var content = $("<div class = 'content'>").attr("contenteditable", "true");
-    $("<div class = 'post-it'>").css("top",y).css("left",x).append(header).append(content).appendTo(board);
-    $(".post-it").draggable({cancel : '.content'});
-
-    $(".post-it").on("click", function(e){
-      e.preventDefault();  
-      e.stopPropagation();   // return false;
-    });
-
-    
+    // add the current board to the list of managed boards
+    self.$activeBoard = self.createBoard();
   }
+
   initialize();
-};
-
-// create new empty board 
-// var createBoard = function() {
-//   $("#new_board").on("click", function(){
-//     new Board('.post_board');
-//     $('.post_board').empty();
-//     // append the list 
-//     $("#board_list").append("<li id = " + board_id + ">Board"+ counter +"</li>");
-//     var board_name = $("<li>Board"+ counter +"</li>").html();
-//     // $("<li>Board"+ counter +"</li>").appendTo('h3').css("font-family", "Times");
-//     counter++;
-//     var board_id = counter;  
-// }
-
-// edit existing board
-// var editBoard = function() {
-
-// }
-
-// when DOM loaded  
-$(function() {
-  var boards = {};
-   var counter = 0;
-    var array_of_postits = [];
-
-   // create new EMPTY board
-  $("#new_board").on("click", function(e){
-    e.preventDefault();
-    // createBoard();
-
-    var myboard = new Board('.post_board'); 
+}
 
 
-    $('.post_board').empty();
-    var li = $('<li></li>');
-    li.addClass("board"+counter);
-    li.html("Board"+counter);
-    $("#board_list").append(li);
-    $('.post_board').append("<h3 class='board_head'>Board" + counter + "</h3>");
- //   $("#board_list").append("<li id = board" + counter + ">Board"+ counter +"</li>");
-//    var board_name = $("<li>Board"+ counter +"</li>").html();
-    // $("<li>Board"+ counter +"</li>").appendTo('h3').css("font-family", "Times");
-    counter++;
- //   var board_id = counter;
+BoardSelector.prototype = {
+  createBoard: function() {
+    // board name
+    var boardName = "board-" + (this.boards.length + 1);
+    var $boardElement = this.$boardTemplate.clone().attr("id", boardName);
+    $('script').eq(0).before($boardElement);
 
-  });  // end of "#new_board" click
-
-    // $("#board_list li").closest().click(function(){
-    // $("#board_list li").click(function(){
-    //   console.log("hi");
-    //   console.log($(this));
-    //   $(".post-it").hide();
-    // });
-    //});
+    var boardLiTemplate = "<li>"+boardName+"</li>"
+    this.$boardList.append(boardLiTemplate);
 
 
-  function createArrayOfPostit(board_name) {
-    // only one board
-  $('.content').on('blur', function(e) {
-        if ($(this).text()) {  
-          // obj is one postit note
-          obj.content = $(this).text();
-          obj.position = "smth";
-          array_of_postits.push(obj);
-        } 
-      })
-    return array_of_postits;
+    this.boards.push(new Board(boardName, $boardElement));
+    return this.boards[this.boards.length-1].$elem;
+  },
+
+  selectBoard: function(e) {
+    var boardId = $(e.target).text();
+    this.$activeBoard = $("#"+boardId);
+    for (var i in this.boards) {
+      this.boards[i].$elem.hide();
+    }
+    this.$activeBoard.show();
+  },
+
+  loadSamples: function() {
+    console.log('loading samples ...');
+  }
+}
+
+
+function Board(boardId, $boardElement) {
+  this.id = boardId;
+  this.$elem = $boardElement;
+  this.$postItTemplate = $('#post-it-template');
+
+  var self = this;
+  function initialize() {
+    self.$elem.on('click', function(e) { self.placePostIt(e) });
   }
 
+  initialize();
+}
+
+Board.prototype = {
+  placePostIt: function(e) {
+    var $postItElement = this.$postItTemplate.clone().removeAttr("id");
+    this.$elem.append($postItElement);
+    var newPostIt = new PostIt($postItElement, e.clientX, e.clientY);
+  }
+}
 
 
-  $("#board_list").on('click', function(e){
-    var $target_elem = $(e.target);
-    var board_name = $target_elem.html(); //boardname
-    $('.board_head').hide();
-//    boards.hide();
-    $('.post_board').append("<h3 class='board_head'>" + board_name + "</h3>");
-//    boards.board_name.show()
-    // editBoard()
+function PostIt($postItElement, x, y) {
+  this.$elem = $postItElement;
+  var css = { left: x, top: y };
+  this.$elem.css(css);    
+  this.$elem.show();
 
-  });
+  var self = this;
+  function initialize() {
+    // bind to click events and stop propagation to prevent
+    // set up draggable
+  }
 
-//  boards.board_name = array_of_postits;
+  initialize();
+}
 
-//  boards.Board2
 
-  // When user clicks board name, selected board appears and previous board is hidden
+$(function() {
+  var bs = new BoardSelector('#board_selector');
 });
-
