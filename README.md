@@ -2,7 +2,8 @@
 =============
 
 ##What is this app about?
-A Javascript app for users who want to have a dynamic post_it in their computer 
+An improved version of my Postit Part 1 Javascript app.
+It was built for users who want to have a dynamic post_it in their computer 
 
 ##Why did I code this app?
 *I created this app to learn and practice Javascript while building a product that I can use in my daily activities ( I am a to-do list girl).  
