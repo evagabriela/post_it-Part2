@@ -10,7 +10,7 @@ body {
   min-width: 120px;
   height: 100%;
   padding: 4px;
-  background-color: #eee;
+  background-color: #F1454E;
   border-right: 1px solid #ddd;
 }
  
@@ -44,7 +44,7 @@ ul#board_list li.active {
 }
  
 .post_board {
-  background-color: #9e8d68;
+  background-color: #A5A5A5;
   float: right;
   width: 100%;
   height: 100%;
